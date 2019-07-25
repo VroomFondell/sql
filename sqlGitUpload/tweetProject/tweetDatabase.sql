@@ -10,7 +10,7 @@ AccountHandle VARCHAR(45),
 AccountEmail VARCHAR(45)
 );
 
-CREATE TABLE Followers 
+CREATE TABLE Followers
 (
 TweetAccountId INT,
 FollowerId INT,
@@ -28,7 +28,7 @@ TweetLiked INT,
 TweetRetweeted INT,
 IsDeleted BOOLEAN);
 
-CREATE TABLE Hashtags 
+CREATE TABLE Hashtags
 (
 HashtagId INT AUTO_INCREMENT PRIMARY KEY,
 Hashtag VARCHAR(140)
@@ -76,8 +76,8 @@ VALUES
     (DEFAULT, 'JohnDorian', 'eeeeeeagle@something.com'),
     (DEFAULT, 'chocolatebear', 'turkleton@something.com'),
     (DEFAULT, 'NomDePlume', 'ghostwriter@something.com');
-    
-    
+
+
 INSERT INTO tweetbody
 VALUES
 	(DEFAULT, 1, 'White House for irredeemable deplorable peeps https://t.co/tyhqz3xFVK', '2016-02-20 01:51:50', 6, 2, FALSE),
@@ -87,8 +87,8 @@ VALUES
     (DEFAULT, 3, 'Starting tomorrow I''ll be down in Washington', '2016-04-26 5:43:50', 140, 100, FALSE),
     (DEFAULT, 3, 'So proud of @TrevorNoah   Awesome effort', '2016-04-15 6:45:50', 12, 2000, FALSE),
     (DEFAULT, 4, 'Lowest home ownership rate in OH GOD IT''S ALL ON FIRE!!', '2016-08-14 7:31:50', 80, 10, FALSE);
-    
-    
+
+
 INSERT INTO tweetresponses
 VALUES
     (DEFAULT, 1, 'How did u know. Haha https://t.co/9eqCCVJVvo', '2016-11-20 22:33:50', 8, 1, FALSE),
@@ -110,8 +110,8 @@ VALUES
     (DEFAULT, 'sadness'),
     (DEFAULT, 'nope'),
     (DEFAULT, 'coffeesolvesproblmes');
-    
-    
+
+
 INSERT INTO accountresponses
 VALUES
 	(1,2),
@@ -122,8 +122,8 @@ VALUES
     (3,4),
     (4,1),
     (4,3);
-    
-    
+
+
 INSERT INTO bodyhashtag
 VALUES
 	(1,1),
@@ -134,7 +134,7 @@ VALUES
     (3,4),
     (4,4),
     (4,1);
-   
+
 INSERT INTO followers
 VALUES
 	(1,1),
@@ -145,8 +145,8 @@ VALUES
     (3,4),
     (4,4),
     (4,1);
-    
-    
+
+
 INSERT INTO hashtagresponses
 VALUES
 	(1,2),
@@ -157,70 +157,3 @@ VALUES
     (3,4),
     (4,1),
     (4,3);
-
-
-###SAMPLE QUERIES ###
-##Find Tweets and Hashtags w/ Particular Keyword(s)
-SELECT 	Content, Hashtag
-FROM TweetBody
-	LEFT JOIN BodyHashtag USING (BodyId)
-	LEFT JOIN Hashtags USING (HashtagId)
-WHERE Hashtag LIKE '%ama%'
-		OR Content LIKE '%dep%';
-
-
-##Get a list of all Account Handles and number of Total Responses, sorted by most responses##
-SELECT DISTINCT AccountHandle AS 'Account Handle',
-		COUNT(ResponseId)
-FROM TweetAccount 
-	JOIN AccountResponses USING (AccountId)
-ORDER BY 2 DESC;
-
-## Get a list of every account Handle along with the account Handle that respondes the most to that one
-
-## Get a list of the most popular Hash Tags
-SELECT DISTINCT Hashtag,
-		COUNT(HashtagId) AS 'Times Used'
-FROM Hashtags
-	JOIN BodyHashtag USING (HashtagId)
-ORDER BY 2 DESC;
-
-## Get a list of all tweets using the most popular hashtag
-
-SELECT Content
-FROM TweetBody
-	JOIN BodyHashtag USING (BodyId)
-WHERE HashtagId = (	SELECT HashtagId
-					FROM BodyHashtag
-					GROUP BY HashtagId
-					ORDER BY COUNT(*) DESC
-					LIMIT 1);
-
-
-## Creates view by getting all Tweets, including Content, Handle, Email Address, Time,
-## and Number of Responses most popular first
-
-CREATE OR REPLACE VIEW MostResponded AS
-SELECT 	tb.Content,
-		ta.AccountHandle,
-		ta.AccountEmail,
-		tb.TweetTime,
-		COUNT(ResponseId) AS 'Number of Responses'
-FROM TweetBody tb
-		JOIN TweetAccount ta ON ta.AccountId = tb.AccountId
-		JOIN TweetResponses tr ON tb.BodyId = tr.BodyId
-GROUP BY 1,2,3,4
-ORDER BY 5 DESC;
-
-
-## Creates view by getting a list of all Account Handles and Associated Email Address
-## Along with a number of followers, highest amount first
-
-CREATE OR REPLACE VIEW NumberOfFollowers AS
-SELECT 	ta.AccountHandle AS 'Account Handle', 
-		ta.AccountEmail  AS 'Account Email', 
-		COUNT(FollowerId) AS 'Number Of Followers'
-FROM TweetAccount ta
-	JOIN Followers f ON ta.AccountId = f.TweetAccountId
-GROUP BY 1,2
-ORDER BY 3 DESC;
